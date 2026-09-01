@@ -1,0 +1,70 @@
+# ---- Java / Maven ----
+backend/target/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# ---- Spring Tool Suite / Eclipse ----
+backend/.project
+backend/.classpath
+backend/.settings/
+.metadata/
+.classpath
+.project
+.settings/
+*.prefs
+
+# ---- Node / npm ----
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- Local env / secrets ----
+.env
+.env.*
+!.env.example
+*.local
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+
+# ---- Logs ----
+logs/
+*.log
+
+# ---- Research / data-curation artifacts (not needed to run the app) ----
+# Root-level research pipeline (step*.py, commons_*.py, etc.) and downloaded
+# source data. The running app only needs data inside
+# backend/src/main/resources/data/ and the built frontend in
+# backend/src/main/resources/static/. These root files were used once to
+# generate that dataset and are not part of the runtime artifact.
+/*.py
+/*.txt
+/*.json
+/*.xml
+/*.pdf
+/*.html
+Research/
+_research/
+apicache/
+.workbuddy-ai/
+maven.zip
+
+# ---- Archives / large local artifacts ----
+*.zip
+*.gz

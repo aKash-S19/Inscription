@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: kalvettu-backend
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: none          # schema is provided by schema.sql (PostgreSQL-compatible)
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  sql:
+    init:
+      mode: always
+      encoding: UTF-8
+
+server:
+  port: 8080
+
+---
+# Default zero-install profile: H2 running in PostgreSQL compatibility mode.
+# This lets the whole application (real PostgreSQL DDL, real queries) run with
+# no external database installed. For a genuine PostgreSQL server, use the
+# 'postgres' profile (see application-postgres.yml) and docker-compose.yml.
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:kalvettu;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: ${KALVETTU_DB_URL:jdbc:postgresql://localhost:5432/kalvettu}
+    driver-class-name: org.postgresql.Driver
+    username: ${KALVETTU_DB_USER:kalvettu}
+    password: ${KALVETTU_DB_PASSWORD:kalvettu}

@@ -1,0 +1,7 @@
+# PostgreSQL profile. Provide connection via env vars or edit below.
+# Example: java -jar backend/target/kalvettu-backend-1.0.0.jar --spring.profiles.active=postgres
+spring:
+  datasource:
+    url: ${KALVETTU_DB_URL:jdbc:postgresql://localhost:5432/kalvettu}
+    username: ${KALVETTU_DB_USER:kalvettu}
+    password: ${KALVETTU_DB_PASSWORD:kalvettu}
