@@ -99,6 +99,46 @@ npm run dev
 
 ---
 
+## AI features (Kalvettu AI)
+
+The project includes an optional AI layer powered by **Google Gemini** (via the
+Gemini REST API). It is fully disabled until you supply an API key — the rest of
+the app runs unaffected.
+
+| AI feature | Endpoint | What it does |
+|------------|----------|--------------|
+| **Grounded chat assistant** | `POST /api/ai/chat` | Answers questions about temples, inscriptions, rulers and dynasties **strictly from the verified archive data** (retrieval-grounded); refuses to invent facts not in the context. Can answer in any language. |
+| **Translate & explain a kalvettu** | `POST /api/ai/translate` | Faithfully translates any Tamil/Grantha kalvettu text into a chosen language and gives a plain-language explanation of its meaning. |
+| **AI data ingestion** | `POST /api/ai/ingest` | Reads a photo (or pasted text) of an inscription with Gemini vision and outputs a structured draft record (title, language, script, translation, explanation, significance, ruler) for review. |
+
+The UI lives at **`/ai`** (linked from the navbar) with tabs for chat, translate and ingest.
+
+### Enabling the AI (set a Gemini API key)
+
+1. Get a key: https://aistudio.google.com/apikey
+2. Set it as an environment variable before starting the backend:
+
+```bash
+# PowerShell
+$env:KALVETTU_AI_GEMINI_KEY = "your-key-here"
+$env:KALVETTU_AI_GEMINI_MODEL = "gemini-2.0-flash"   # optional
+mvn spring-boot:run
+
+# Bash / macOS / Linux
+export KALVETTU_AI_GEMINI_KEY="your-key-here"
+export KALVETTU_AI_GEMINI_MODEL="gemini-2.0-flash"   # optional
+mvn spring-boot:run
+```
+
+3. Without a key, AI endpoints return `503 "AI is not configured"`; set the key and restart.
+
+> **Accuracy policy:** the chat assistant is grounded in the verified dataset and is
+> instructed never to invent inscriptions, rulers, dates, translations or sources.
+> AI translations / ingestion output is a **draft** — treat it as unverified until it
+> matches a citable source (SII/ARE/etc.).
+
+---
+
 ## Quick start (zero external install)
 
 The backend uses **H2 in PostgreSQL compatibility mode** by default, so the whole stack runs

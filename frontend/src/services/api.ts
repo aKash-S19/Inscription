@@ -1,6 +1,7 @@
 import type {
   TempleCard, TempleDetail, InscriptionCard, InscriptionDetail,
   DynastyDto, RulerDto, DistrictDto, InscriptionLocationDto, TimelineEvent, SearchResult,
+  ChatMessage, ChatResponse, TranslateRequest, TranslateResponse, IngestRequest, IngestResponse,
 } from '../types'
 
 const BASE = '/api'
@@ -9,6 +10,19 @@ async function get<T>(path: string): Promise<T> {
   const res = await fetch(BASE + path)
   if (!res.ok) {
     throw new Error(`Request failed: ${path} (${res.status})`)
+  }
+  return res.json() as Promise<T>
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(BASE + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Request failed: ${path} (${res.status}) ${text}`)
   }
   return res.json() as Promise<T>
 }
@@ -39,6 +53,15 @@ export const api = {
   timeline: () => get<TimelineEvent[]>('/timeline'),
 
   search: (q: string) => get<SearchResult>(`/search?q=${encodeURIComponent(q)}`),
+
+  aiChat: (messages: ChatMessage[], language?: string) =>
+    post<ChatResponse>('/ai/chat', { messages, language }),
+
+  aiTranslate: (text: string, targetLanguage?: string) =>
+    post<TranslateResponse>('/ai/translate', { text, targetLanguage }),
+
+  aiIngest: (req: IngestRequest) =>
+    post<IngestResponse>('/ai/ingest', req),
 }
 
-export type { TempleCard, TempleDetail, InscriptionCard, InscriptionDetail, DynastyDto, RulerDto, DistrictDto, InscriptionLocationDto, TimelineEvent, SearchResult }
+export type { TempleCard, TempleDetail, InscriptionCard, InscriptionDetail, DynastyDto, RulerDto, DistrictDto, InscriptionLocationDto, TimelineEvent, SearchResult, ChatMessage, ChatResponse, TranslateResponse, IngestResponse }

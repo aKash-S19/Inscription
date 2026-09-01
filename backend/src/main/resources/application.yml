@@ -20,6 +20,21 @@ spring:
 server:
   port: 8080
 
+# ---- AI (Google Gemini) integration ----
+# Set KALVETTU_AI_GEMINI_KEY with a valid key to enable the AI endpoints.
+# Without a key the endpoints return 503 "AI not configured".
+kalvettu:
+  ai:
+    enabled: true
+    gemini-key: ${KALVETTU_AI_GEMINI_KEY:}
+    gemini-model: ${KALVETTU_AI_GEMINI_MODEL:gemini-2.0-flash}
+    system-prompt: >
+      You are Kalvettu AI, an expert assistant for the Kalvettu digital archive of
+      Tamil temple inscriptions. Answer only from the verified data provided in the
+      context. If the answer is not in the provided context, say so honestly and do
+      not invent facts, dates, names, translations or sources. Keep temple and
+      inscription details accurate to the cited records.
+
 ---
 # Default zero-install profile: H2 running in PostgreSQL compatibility mode.
 # This lets the whole application (real PostgreSQL DDL, real queries) run with

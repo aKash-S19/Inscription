@@ -162,3 +162,42 @@ export interface SearchResult {
   temples: TempleCard[]
   inscriptions: InscriptionCard[]
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface ChatResponse {
+  answer: string
+  language: string
+}
+
+export interface TranslateRequest {
+  text: string
+  targetLanguage?: string
+}
+
+export interface TranslateResponse {
+  translation: string
+  explanation: string
+  targetLanguage: string
+}
+
+export interface IngestRequest {
+  imageBase64?: string
+  mimeType?: string
+  text?: string
+  templeName?: string
+}
+
+export interface IngestResponse {
+  title: string
+  language: string
+  script: string
+  translation: string
+  simpleExplanation: string
+  historicalSignificance: string
+  ruler: string
+  notes: string
+}

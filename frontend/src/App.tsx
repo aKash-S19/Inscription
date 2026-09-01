@@ -10,6 +10,7 @@ import InteractiveMap from './pages/InteractiveMap'
 import Explore from './pages/Explore'
 import Timeline from './pages/Timeline'
 import About from './pages/About'
+import AiLab from './pages/AiLab'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/timeline" element={<Timeline />} />
           <Route path="/about" element={<About />} />
+          <Route path="/ai" element={<AiLab />} />
         </Routes>
       </main>
       <Footer />

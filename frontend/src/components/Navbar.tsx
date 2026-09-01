@@ -8,6 +8,7 @@ const links = [
   { to: '/map', label: 'Map' },
   { to: '/explore', label: 'Dynasty & District' },
   { to: '/timeline', label: 'Timeline' },
+  { to: '/ai', label: 'AI' },
   { to: '/about', label: 'Sources' },
 ]
 
