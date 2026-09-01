@@ -5,11 +5,13 @@ import L from 'leaflet'
 import { api } from '../services/api'
 import type { TempleCard, InscriptionLocationDto } from '../types'
 
-// Fix default marker icons under bundlers
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+// Inline (CSS) pin so markers never depend on external image URLs.
+const templeIcon = L.divIcon({
+  className: 'kalvettu-marker',
+  html: '<div class="kalvettu-pin-wrap"><div class="kalvettu-pin"></div></div>',
+  iconSize: [26, 42],
+  iconAnchor: [13, 27],
+  popupAnchor: [0, -26],
 })
 
 export default function InteractiveMap() {
@@ -59,6 +61,7 @@ export default function InteractiveMap() {
                 <Marker
                   key={t.slug}
                   position={[t.lat, t.lng]}
+                  icon={templeIcon}
                   eventHandlers={{ click: () => setSelected(t.slug) }}
                 >
                   <Popup>

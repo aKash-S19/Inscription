@@ -80,6 +80,46 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+/* Custom CSS map pins (no external image dependency) */
+.kalvettu-marker {
+  background: none;
+  border: none;
+}
+.kalvettu-pin-wrap {
+  position: relative;
+  width: 26px;
+  height: 42px;
+}
+.kalvettu-pin {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: #b08d36;
+  border: 2px solid #fdf8ec;
+  box-shadow: 0 3px 8px rgba(43, 33, 23, 0.45);
+}
+.kalvettu-pin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: #fdf8ec;
+}
+.kalvettu-pin:hover {
+  background: #8a6d28;
+}
+.leaflet-marker-icon.kalvettu-marker {
+  outline: none;
+}
+
 /* Tamil-inspired faint background motif */
 .heritage-bg {
   background-image:
