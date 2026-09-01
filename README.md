@@ -1,9 +1,9 @@
-﻿# Kalvettu â€” Digital Archive of Tamil Temple Inscriptions
+﻿# Kalvettu — Digital Archive of Tamil Temple Inscriptions
 
 A production-quality web application for a digital Tamil heritage project focused on
-**Tamil temple inscriptions (à®•à®²à¯à®µà¯†à®Ÿà¯à®Ÿà¯ / Kalvettu)**. It connects the physical temple â†’
-the exact inscription location â†’ the original image â†’ the transcription â†’ the translation â†’
-the historical meaning â†’ the authoritative source.
+**Tamil temple inscriptions (கல்வெட்டு / Kalvettu)**. It connects the physical temple →
+the exact inscription location → the original image → the transcription → the translation →
+the historical meaning → the authoritative source.
 
 > **Core principle: nothing is invented.** Every inscription retains its publication
 > reference (SII volume/number, ARE number, or Epigraphia Indica). Where a fact,
@@ -21,8 +21,8 @@ Before running anything, install the following tools:
 | **Java (JDK)** | 21 | Runs the Spring Boot backend | https://adoptium.net (Temurin 21) or open in Spring Tool Suite |
 | **Maven** | 3.9+ | Builds/launches the backend | `choco install maven` (Windows) or https://maven.apache.org |
 | **Node.js** | 18 / 20 / 22 LTS | Runs the Vite/React frontend | https://nodejs.org (includes `npm`) |
-| **Spring Tool Suite (STS)** | 4.x *(optional)* | IDE â€” bundles its own Java & Maven | https://spring.io/tools |
-| **PostgreSQL** *(optional â€” production only)* | 14+ | Real database backend | `docker compose up -d` in `backend/`, or https://www.postgresql.org |
+| **Spring Tool Suite (STS)** | 4.x *(optional)* | IDE — bundles its own Java & Maven | https://spring.io/tools |
+| **PostgreSQL** *(optional — production only)* | 14+ | Real database backend | `docker compose up -d` in `backend/`, or https://www.postgresql.org |
 
 > Not strictly required: PostgreSQL. The app ships with **H2 in PostgreSQL-compatibility mode**,
 > so a fresh clone runs end-to-end with just JDK + Maven + Node.
@@ -54,7 +54,7 @@ mvn spring-boot:run
   SERVER__PORT=8081 mvn spring-boot:run
   ```
 - **In STS:** `File > Import > Existing Maven Projects`, select the `backend` folder, then
-  right-click the project â†’ `Run As > Spring Boot App`.
+  right-click the project → `Run As > Spring Boot App`.
 
 ### 3. Start the frontend (Vite, port 5173)
 
@@ -64,7 +64,7 @@ npm install
 npm run dev
 ```
 
-- Open http://localhost:5173 â€” the Vite dev server proxies `/api` to the backend on :8080.
+- Open http://localhost:5173 — the Vite dev server proxies `/api` to the backend on :8080.
 
 ### 4. Open the app
 
@@ -85,24 +85,24 @@ npm run dev
 
 ## Screens
 
-1. **Home** â€” hero + search, featured temples, explore by dynasty/district, featured inscriptions.
-2. **Temple Gallery** â€” real photographs, search & filters (district/dynasty), verified cards.
-3. **Temple Details** â€” overview, history, architecture, inscriptions, gallery, map, references.
-4. **Inscription Explorer** â€” search + filter by temple / dynasty / ruler / district; thumbnails.
-5. **Inscription Details** â€” original image, identification, transcription, translation, simple
+1. **Home** — hero + search, featured temples, explore by dynasty/district, featured inscriptions.
+2. **Temple Gallery** — real photographs, search & filters (district/dynasty), verified cards.
+3. **Temple Details** — overview, history, architecture, inscriptions, gallery, map, references.
+4. **Inscription Explorer** — search + filter by temple / dynasty / ruler / district; thumbnails.
+5. **Inscription Details** — original image, identification, transcription, translation, simple
    explanation, historical significance, and the cited source.
-6. **Interactive Temple Map** â€” real temple coordinates (Leaflet/OSM); in-temple schematic of
+6. **Interactive Temple Map** — real temple coordinates (Leaflet/OSM); in-temple schematic of
    *verified* inscription locations that open the inscription. No invented locations.
-7. **Explore by Dynasty / District** â€” Tamil Nadu districts + dynasty explorer (verified only).
-8. **Timeline** â€” temples and rulers in chronological order.
-9. **Sources / About** â€” project purpose, data policy, and authorities used.
+7. **Explore by Dynasty / District** — Tamil Nadu districts + dynasty explorer (verified only).
+8. **Timeline** — temples and rulers in chronological order.
+9. **Sources / About** — project purpose, data policy, and authorities used.
 
 ---
 
 ## AI features (Kalvettu AI)
 
 The project includes an optional AI layer powered by **Google Gemini** (via the
-Gemini REST API). It is fully disabled until you supply an API key â€” the rest of
+Gemini REST API). It is fully disabled until you supply an API key — the rest of
 the app runs unaffected.
 
 | AI feature | Endpoint | What it does |
@@ -134,7 +134,7 @@ mvn spring-boot:run
 
 > **Accuracy policy:** the chat assistant is grounded in the verified dataset and is
 > instructed never to invent inscriptions, rulers, dates, translations or sources.
-> AI translations / ingestion output is a **draft** â€” treat it as unverified until it
+> AI translations / ingestion output is a **draft** — treat it as unverified until it
 > matches a citable source (SII/ARE/etc.).
 
 ---
@@ -165,7 +165,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173 â€” the Vite dev server proxies `/api` to the backend on :8080.
+Open http://localhost:5173 — the Vite dev server proxies `/api` to the backend on :8080.
 
 ---
 
@@ -210,8 +210,8 @@ All textual data lives in `backend/src/main/resources/data/dataset.json`. Image 
 fetched from the **Wikimedia Commons API** and validated (HTTP 200) before inclusion, with
 author + licence captured for attribution. Primary inscription sources include:
 
-- **South Indian Inscriptions (SII)** â€” e.g. Vol. II (Rajarajesvaram temple, Thanjavur, ed. V. Venkayya, ASI NIS Vol. X, 1913); Vol. I (Pallava, Kanchipuram/Mamallapuram, ed. E. Hultzsch); Vol. XII (Chidambaram).
-- **Annual Report on (South) Indian Epigraphy (ARE)** â€” e.g. Darasuram ARE 16â€“27 of 1908.
+- **South Indian Inscriptions (SII)** — e.g. Vol. II (Rajarajesvaram temple, Thanjavur, ed. V. Venkayya, ASI NIS Vol. X, 1913); Vol. I (Pallava, Kanchipuram/Mamallapuram, ed. E. Hultzsch); Vol. XII (Chidambaram).
+- **Annual Report on (South) Indian Epigraphy (ARE)** — e.g. Darasuram ARE 16–27 of 1908.
 - **Epigraphia Indica**, **Archaeological Survey of India**, **UNESCO** (refs. 249 & 250), **Tamil Nadu Dept. of Archaeology**.
 
 The original-script Tamil/Grantha text is cited to its publication rather than transcribed here,
@@ -232,7 +232,7 @@ frontend/
 ## Notes & limitations
 
 - The dataset is intentionally **small and verified** (6 temples, 11 inscriptions). It is designed
-  to grow as more records are verified â€” add entries to `dataset.json` and restart.
+  to grow as more records are verified — add entries to `dataset.json` and restart.
 - In-temple map markers are an **indicative schematic**, not an authoritative temple plan; the
   authoritative plans are not redistributed. Every marker still links to its verified source.
 - Photographs are hot-linked from Wikimedia Commons; if a file is later renamed upstream, update

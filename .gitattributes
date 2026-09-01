@@ -1,0 +1,8 @@
+# Normalise line endings and text encoding so non-ASCII (Tamil, em-dashes)
+# survives round-trips on Windows.
+*.md text eol=lf
+*.java text eol=lf
+*.yml  text eol=lf
+*.tsx  text eol=lf
+*.ts   text eol=lf
+*.json text eol=lf
