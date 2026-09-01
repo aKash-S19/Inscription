@@ -76,6 +76,48 @@ export default function AiLab() {
     setImgPreview(URL.createObjectURL(f))
   }
 
+  // Downscale large photos client-side before upload so the payload stays well
+  // under Gemini's request-size limit (deep-linking full phone photos fails).
+  async function imageToPreparedData(file: File): Promise<{ base64: string; mime: string }> {
+    try {
+      const bitmap = await createImageBitmap(file)
+      const MAX_DIM = 1600
+      const scale = Math.min(1, MAX_DIM / Math.max(bitmap.width, bitmap.height))
+      if (scale >= 1) {
+        bitmap.close()
+        return await fileToBase64(file, file.type || 'image/jpeg')
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(bitmap.width * scale)
+      canvas.height = Math.round(bitmap.height * scale)
+      canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+      bitmap.close()
+      const blob = await canvasToBlob(canvas)
+      return await fileToBase64(blob, 'image/jpeg')
+    } catch {
+      // Unsupported format (e.g. HEIC in some browsers) — send the original.
+      return await fileToBase64(file, file.type || 'image/jpeg')
+    }
+  }
+
+  function fileToBase64(blob: Blob, mime: string): Promise<{ base64: string; mime: string }> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onerror = () => reject(new Error('Could not read the image file'))
+      reader.onload = () => {
+        const result = reader.result as string
+        resolve({ base64: result.slice(result.indexOf(',') + 1), mime })
+      }
+      reader.readAsDataURL(blob)
+    })
+  }
+
+  function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Image processing failed'))), 'image/jpeg', 0.85)
+    })
+  }
+
   async function doIngest() {
     if (busy) return
     setError('')
@@ -84,12 +126,9 @@ export default function AiLab() {
       let imageBase64: string | undefined
       let mimeType: string | undefined
       if (ingImage) {
-        const buf = await ingImage.arrayBuffer()
-        const bytes = new Uint8Array(buf)
-        let bin = ''
-        for (const b of bytes) bin += String.fromCharCode(b)
-        imageBase64 = btoa(bin)
-        mimeType = ingImage.type || 'image/jpeg'
+        const prepared = await imageToPreparedData(ingImage)
+        imageBase64 = prepared.base64
+        mimeType = prepared.mime
       }
       const res = await api.aiIngest({
         imageBase64,

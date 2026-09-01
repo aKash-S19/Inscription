@@ -136,9 +136,30 @@ public class GeminiClient {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini returned no text content.");
         } catch (ResponseStatusException e) {
             throw e;
+        } catch (org.springframework.web.client.RestClientResponseException e) {
+            String detail = extractError(e.getResponseBodyAsString());
+            log.error("Gemini HTTP error {}: {}", e.getRawStatusCode(), detail);
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                    "Gemini error (" + e.getRawStatusCode() + "): " + detail);
         } catch (Exception e) {
             log.error("Gemini call failed", e);
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Gemini call failed: " + e.getMessage());
         }
+    }
+
+    /** Pulls the human-readable message from a Gemini error JSON body. */
+    private String extractError(String body) {
+        if (body == null || body.isBlank()) {
+            return "no detail provided";
+        }
+        try {
+            JsonNode err = mapper.readTree(body).path("error").path("message");
+            if (err.isTextual() && !err.asText().isBlank()) {
+                return err.asText();
+            }
+        } catch (Exception ignored) {
+            // fall through to raw body
+        }
+        return body.length() > 300 ? body.substring(0, 300) + "…" : body;
     }
 }
