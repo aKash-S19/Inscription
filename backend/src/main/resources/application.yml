@@ -3,6 +3,11 @@ spring:
     name: kalvettu-backend
   profiles:
     active: dev
+  # Load an optional ./backend/.env file so AI credentials can be pasted into
+  # a local, git-ignored file instead of using environment variables.
+  # 'optional:' means the app still starts if the file is absent.
+  config:
+    import: optional:file:./.env[.properties]
   jpa:
     hibernate:
       ddl-auto: none          # schema is provided by schema.sql (PostgreSQL-compatible)
