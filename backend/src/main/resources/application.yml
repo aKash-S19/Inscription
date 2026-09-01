@@ -32,7 +32,7 @@ kalvettu:
   ai:
     enabled: true
     gemini-key: ${KALVETTU_AI_GEMINI_KEY:}
-    gemini-model: ${KALVETTU_AI_GEMINI_MODEL:gemini-2.0-flash}
+    gemini-model: ${KALVETTU_AI_GEMINI_MODEL:gemini-3.6-flash}
     system-prompt: >
       You are Kalvettu AI, an expert assistant for the Kalvettu digital archive of
       Tamil temple inscriptions. Answer only from the verified data provided in the

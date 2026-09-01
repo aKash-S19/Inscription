@@ -23,7 +23,7 @@ public class AiProperties {
     private String geminiKey = "";
 
     /** Gemini model id used for text + vision calls. */
-    private String geminiModel = "gemini-2.0-flash";
+    private String geminiModel = "gemini-3.6-flash";
 
     /** Base URL of the Gemini generateContent endpoint (key placeholder). */
     private String geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
