@@ -24,6 +24,8 @@ spring:
 
 server:
   port: 8080
+  error:
+    include-message: always   # surface the real AI error reason to the frontend
 
 # ---- AI (Google Gemini) integration ----
 # Set KALVETTU_AI_GEMINI_KEY with a valid key to enable the AI endpoints.

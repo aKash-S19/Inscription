@@ -25,6 +25,15 @@ public class AiIngestionService {
         if (!hasImage && !hasText) {
             throw new IllegalArgumentException("Provide an inscription image and/or text.");
         }
+        if (hasImage) {
+            long approxBytes = (long) request.imageBase64().length() * 3L / 4L;
+            if (approxBytes > 15L * 1024L * 1024L) {
+                throw new IllegalArgumentException(
+                        "Image is too large (approx " + (approxBytes / (1024L * 1024L))
+                                + " MB). Please upload a smaller photo (under ~12 MB) "
+                                + "or a cropped scan of the inscription.");
+            }
+        }
 
         String prompt = buildPrompt(request);
         String raw;
