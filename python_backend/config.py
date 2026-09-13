@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     ADMIN_API_KEY: Optional[str] = None
     ALLOWED_HOSTS: Union[str, List[str]] = ["*"]
     CORS_ORIGINS: Union[str, List[str]] = [
+        "https://silaimozhi.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",
         "http://127.0.0.1:5173"
