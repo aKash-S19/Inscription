@@ -18,9 +18,17 @@ export default function InscriptionDetails() {
   }, [slug])
 
   if (loading) return <Spinner />
-  if (!data) return <div className="container-page py-20 text-center text-ink/70">Inscription not found.</div>
+  if (!data) {
+    return (
+      <div className="container-page py-20 text-center">
+        <p className="font-english-display tracking-wide text-3xl font-semibold text-charcoal">No verified inscription record found in the Kalvettu archive.</p>
+        <p className="mt-2 text-stone">Try searching by inscription title (e.g. &ldquo;silver vessels&rdquo;, &ldquo;jewelled ornaments&rdquo;), ruler, or temple.</p>
+        <Link to="/inscriptions" className="btn-gold mt-6 inline-block">Browse all inscriptions</Link>
+      </div>
+    )
+  }
 
-  const img = data.images[0]
+  const img = data.images && data.images.length > 0 ? data.images[0] : null
 
   return (
     <div>
@@ -32,8 +40,8 @@ export default function InscriptionDetails() {
             {data.temple && <span> · <Link to={`/temples/${data.temple.slug}`} className="hover:text-gold-light">{data.temple.nameEn}</Link></span>}
           </nav>
           {data.referenceId && <p className="label-eyebrow text-gold-light">{data.referenceId}</p>}
-          <h1 className="mt-2 font-display text-4xl font-semibold sm:text-5xl">{data.title}</h1>
-          {data.titleTa && <p className="mt-1 text-lg text-ivory/80" lang="ta">{data.titleTa}</p>}
+          <h1 className="mt-2 font-english-display tracking-wide text-4xl font-semibold sm:text-5xl">{data.title}</h1>
+          {data.titleTa && <p className="mt-1 text-xl font-medium tracking-wide text-ivory/90 font-tamil-regular" lang="ta">{data.titleTa}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <SourceBadge verified={data.verified} />
             {data.temple && <span className="text-sm text-ivory/60">at {data.temple.nameEn}</span>}
@@ -48,7 +56,7 @@ export default function InscriptionDetails() {
             {img ? (
               <ImageWithAttribution image={img} className="aspect-[4/5]" />
             ) : (
-              <div className="grid aspect-[4/5] place-items-center bg-ivory-deep text-charcoal/30 font-display text-4xl">கல்வெட்டு</div>
+              <div className="grid aspect-[4/5] place-items-center bg-ivory-deep text-charcoal/30 font-tamil-display text-5xl tracking-wide">கல்வெட்டு</div>
             )}
           </div>
           <div className="card-surface mt-5 p-5">
@@ -71,7 +79,7 @@ export default function InscriptionDetails() {
         <div className="lg:col-span-2 space-y-8">
           <Block title="Original inscription" eyebrow="Authentic record">
             {data.originalText ? (
-              <div className="rounded-md bg-ivory-deep p-5 font-display text-2xl leading-loose text-charcoal" lang="ta">{data.originalText}</div>
+              <div className="rounded-md bg-ivory-deep p-5 font-tamil-display text-3xl leading-loose text-charcoal tracking-wide" lang="ta">{data.originalText}</div>
             ) : (
               <p className="rounded-md border border-dashed border-stone/40 bg-ivory-deep p-5 text-sm italic text-stone">
                 The original Tamil/Grantha text is published in the source cited below and is not transcribed here to avoid errors.
@@ -87,16 +95,16 @@ export default function InscriptionDetails() {
           )}
 
           <Block title="Translation" eyebrow="From the published source">
-            <p className="text-lg leading-relaxed text-ink/90">{data.translation}</p>
+            <p className="text-lg leading-relaxed text-ink/90">{data.translation || "Translation not currently available."}</p>
             {data.translationSource && <p className="mt-3 text-xs italic text-stone">{data.translationSource}</p>}
           </Block>
 
           <Block title="Simple explanation" eyebrow="In plain language">
-            <p className="text-lg leading-relaxed text-ink/90">{data.simpleExplanation}</p>
+            <p className="text-lg leading-relaxed text-ink/90">{data.simpleExplanation || "Information not currently available."}</p>
           </Block>
 
           <Block title="Historical significance" eyebrow="Why it matters">
-            <p className="text-lg leading-relaxed text-ink/90">{data.historicalSignificance}</p>
+            <p className="text-lg leading-relaxed text-ink/90">{data.historicalSignificance || "Information not currently available."}</p>
           </Block>
 
           <div className="card-surface border-gold/30 p-5">
@@ -118,7 +126,7 @@ function Block({ title, eyebrow, children }: { title: string; eyebrow: string; c
   return (
     <section>
       <p className="label-eyebrow mb-2">{eyebrow}</p>
-      <h2 className="font-display text-2xl font-semibold text-charcoal">{title}</h2>
+      <h2 className="font-english-display tracking-wide text-2xl font-semibold text-charcoal">{title}</h2>
       <div className="mt-3">{children}</div>
       <div className="tamil-rule mt-6" />
     </section>

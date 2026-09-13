@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Aboreto&family=Catamaran:wght@400;500;600;700&family=Meera+Inimai&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Arima:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -14,7 +14,7 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Scoutie Sans', 'Inter', system-ui, sans-serif;
   background-color: #f7f1e3;
   color: #2b2117;
   -webkit-font-smoothing: antialiased;
@@ -23,6 +23,18 @@ body {
 @layer components {
   .font-display {
     font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+  .font-english-display {
+    font-family: 'Aboreto', serif;
+  }
+  .font-english-regular {
+    font-family: 'Scoutie Sans', 'Inter', sans-serif;
+  }
+  .font-tamil-display {
+    font-family: 'Meera Inimai', sans-serif;
+  }
+  .font-tamil-regular {
+    font-family: 'Catamaran', sans-serif;
   }
   .container-page {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
@@ -48,7 +60,7 @@ body {
     @apply text-xs font-semibold uppercase tracking-[0.2em] text-gold-dark;
   }
   .section-title {
-    @apply font-display text-3xl font-semibold text-charcoal sm:text-4xl;
+    @apply font-english-display text-3xl font-semibold text-charcoal sm:text-4xl;
   }
 }
 
@@ -125,4 +137,24 @@ body {
   background-image:
     radial-gradient(circle at 12% 18%, rgba(176, 141, 54, 0.06), transparent 38%),
     radial-gradient(circle at 88% 8%, rgba(176, 141, 54, 0.05), transparent 40%);
+}
+
+/* Custom sleek scrollbar for horizontal scrolling containers */
+.hide-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.hide-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+.hide-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(176, 141, 54, 0.3);
+  border-radius: 4px;
+}
+.hide-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(176, 141, 54, 0.6);
+}
+.hide-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(176, 141, 54, 0.3) transparent;
 }

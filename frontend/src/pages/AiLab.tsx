@@ -1,83 +1,59 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import SectionHeading from '../components/SectionHeading'
 import { api } from '../services/api'
-import type { ChatMessage, IngestResponse, TranslateResponse } from '../types'
+import type { ChatMessage, ChatResponse, IngestResponse, TranslateResponse } from '../types'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 type Tab = 'chat' | 'translate' | 'ingest'
 
+const suggestedQuestions = [
+  'What did Rajaraja I donate to the Brihadeesvara Temple?',
+  'Which inscriptions mention donations from the Chera campaign?',
+  'Show inscriptions from the Chola period and their rulers.',
+  'What does the Chidambaram inscription tell us about temple administration?',
+  'Tell me about the war-trophy dvarapala inscription at Darasuram.'
+]
+
 const languages = [
   'English', 'Tamil', 'Hindi', 'Telugu', 'Kannada', 'Malayalam',
-  'French', 'German', 'Spanish', 'Arabic',
+  'French', 'German', 'Spanish'
 ]
 
 const inputCls =
-  'w-full rounded-sm border border-gold/30 bg-white px-3 py-2 text-sm text-charcoal placeholder:text-charcoal/40 focus:border-gold focus:outline-none'
-const btnCls =
-  'rounded-sm bg-gold-dark px-5 py-2.5 text-sm font-semibold text-ivory transition hover:bg-gold focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-const chipCls = (active: boolean) =>
-  `rounded-full px-3 py-1 text-xs font-medium transition ${active ? 'bg-gold-dark text-ivory' : 'bg-charcoal/10 text-charcoal hover:bg-charcoal/20'}`
+  'w-full rounded-md border border-gold/30 bg-ivory-card px-4 py-3 text-sm text-charcoal placeholder:text-stone/60 focus:border-gold focus:ring-1 focus:ring-gold/40 focus:outline-none transition'
+const btnGoldCls =
+  'inline-flex items-center justify-center gap-2 rounded-sm bg-gold-dark px-6 py-3 text-sm font-semibold tracking-wide text-ivory transition hover:bg-gold focus:outline-none focus:ring-2 focus:ring-gold/50 disabled:cursor-not-allowed disabled:opacity-50'
 
 export default function AiLab() {
   const [tab, setTab] = useState<Tab>('chat')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  // Chat state
+  // 1. Chat State
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState('')
+  const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null)
   const [language, setLanguage] = useState('English')
 
-  // Translate state
+  // 2. Translate State
   const [transText, setTransText] = useState('')
   const [transLang, setTransLang] = useState('English')
+  const [transImage, setTransImage] = useState<File | null>(null)
+  const [transImgPreview, setTransImgPreview] = useState('')
   const [translation, setTranslation] = useState<TranslateResponse | null>(null)
 
-  // Ingest state
+  // 3. Ingest State
   const [ingImage, setIngImage] = useState<File | null>(null)
   const [ingText, setIngText] = useState('')
   const [ingTemple, setIngTemple] = useState('')
+  const [ingLocation, setIngLocation] = useState('')
+  const [ingNotes, setIngNotes] = useState('')
   const [ingest, setIngest] = useState<IngestResponse | null>(null)
   const [imgPreview, setImgPreview] = useState('')
 
-  async function sendChat() {
-    const text = chatInput.trim()
-    if (!text || busy) return
-    const history = [...messages, { role: 'user' as const, content: text }]
-    setMessages(history)
-    setChatInput('')
-    setError('')
-    setBusy(true)
-    try {
-      const res = await api.aiChat(history, language)
-      setMessages([...history, { role: 'assistant', content: res.answer }])
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Chat failed')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function doTranslate() {
-    const text = transText.trim()
-    if (!text || busy) return
-    setError('')
-    setBusy(true)
-    try {
-      setTranslation(await api.aiTranslate(text, transLang))
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Translation failed')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  function onImagePicked(f: File) {
-    setIngImage(f)
-    setImgPreview(URL.createObjectURL(f))
-  }
-
-  // Downscale large photos client-side before upload so the payload stays well
-  // under Gemini's request-size limit (deep-linking full phone photos fails).
+  // Downscale photos client-side to keep under request size limits
   async function imageToPreparedData(file: File): Promise<{ base64: string; mime: string }> {
     try {
       const bitmap = await createImageBitmap(file)
@@ -95,7 +71,6 @@ export default function AiLab() {
       const blob = await canvasToBlob(canvas)
       return await fileToBase64(blob, 'image/jpeg')
     } catch {
-      // Unsupported format (e.g. HEIC in some browsers) — send the original.
       return await fileToBase64(file, file.type || 'image/jpeg')
     }
   }
@@ -118,8 +93,53 @@ export default function AiLab() {
     })
   }
 
+  async function sendChat(questionOverride?: string) {
+    const text = (questionOverride || chatInput).trim()
+    if (!text || busy) return
+    const history = [...messages, { role: 'user' as const, content: text }]
+    setMessages(history)
+    setChatInput('')
+    setError('')
+    setBusy(true)
+    try {
+      const res = await api.aiChat(history, language)
+      setChatResponse(res)
+      setMessages([...history, { role: 'assistant', content: res.answer }])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Chat query failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function doTranslate() {
+    if (busy || (!transText.trim() && !transImage)) return
+    setError('')
+    setBusy(true)
+    try {
+      let imageBase64: string | undefined
+      let mimeType: string | undefined
+      if (transImage) {
+        const prepared = await imageToPreparedData(transImage)
+        imageBase64 = prepared.base64
+        mimeType = prepared.mime
+      }
+      const res = await api.aiTranslate({
+        text: transText.trim(),
+        targetLanguage: transLang,
+        imageBase64,
+        mimeType
+      })
+      setTranslation(res)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Translation failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function doIngest() {
-    if (busy) return
+    if (busy || (!ingImage && !ingText.trim())) return
     setError('')
     setBusy(true)
     try {
@@ -135,186 +155,573 @@ export default function AiLab() {
         mimeType,
         text: ingText.trim() || undefined,
         templeName: ingTemple.trim() || undefined,
+        locationInTemple: ingLocation.trim() || undefined,
+        notes: ingNotes.trim() || undefined,
       })
       setIngest(res)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Ingestion failed')
+      setError(e instanceof Error ? e.message : 'Extraction failed.')
     } finally {
       setBusy(false)
     }
   }
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: 'chat', label: 'Ask the archive' },
-    { id: 'translate', label: 'Translate a kalvettu' },
-    { id: 'ingest', label: 'Add a kalvettu (AI)' },
-  ]
-
   return (
-    <div className="heritage-bg">
-      <div className="bg-charcoal py-12 text-ivory">
-        <div className="container-page">
-          <p className="label-eyebrow text-gold-light">Kalvettu AI</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold sm:text-5xl">AI assistant</h1>
-          <p className="mt-3 max-w-2xl text-ivory/75">
-            Ask questions grounded in the verified archive, translate and explain any kalvettu
-            into any language, or turn a photo of an inscription into a structured record.
+    <div className="heritage-bg min-h-screen">
+      {/* HERO SECTION */}
+      <div className="relative overflow-hidden bg-charcoal py-14 text-ivory shadow-lg">
+        <div className="absolute inset-0 opacity-20 heritage-bg" />
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(circle at 75% 30%, rgba(176,141,54,0.4), transparent 50%)' }}
+        />
+        <div className="container-page relative">
+          <p className="label-eyebrow text-gold-light tracking-[0.25em]">KALVETTU INTELLIGENCE</p>
+          <h1 className="mt-3 font-english-display tracking-wide text-4xl font-semibold sm:text-5xl">Explore the archive with AI</h1>
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-ivory/80">
+            Search verified temple and inscription records, understand historical sources,
+            translate inscription text, and assist in creating new records. Grounded in primary epigraphic citations.
           </p>
+
+          {/* Three Capabilities Banner */}
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <button
+              onClick={() => setTab('chat')}
+              className={`rounded-lg p-4 text-left transition ${
+                tab === 'chat'
+                  ? 'border border-gold bg-gold/15 shadow-soft ring-1 ring-gold/40'
+                  : 'border border-ivory/15 bg-charcoal-light/60 hover:border-gold/50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <h2 className="font-english-display tracking-wide text-lg font-semibold text-ivory">1. Ask the Archive</h2>
+              </div>
+              <p className="mt-1 text-xs text-ivory/70">
+                Grounded Q&A using verified records from South Indian Inscriptions & ARE.
+              </p>
+            </button>
+
+            <button
+              onClick={() => setTab('translate')}
+              className={`rounded-lg p-4 text-left transition ${
+                tab === 'translate'
+                  ? 'border border-gold bg-gold/15 shadow-soft ring-1 ring-gold/40'
+                  : 'border border-ivory/15 bg-charcoal-light/60 hover:border-gold/50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <h2 className="font-english-display tracking-wide text-lg font-semibold text-ivory">2. Translate a Kalvettu</h2>
+              </div>
+              <p className="mt-1 text-xs text-ivory/70">
+                Translate Tamil & Grantha text into any language with script detection.
+              </p>
+            </button>
+
+            <button
+              onClick={() => setTab('ingest')}
+              className={`rounded-lg p-4 text-left transition ${
+                tab === 'ingest'
+                  ? 'border border-gold bg-gold/15 shadow-soft ring-1 ring-gold/40'
+                  : 'border border-ivory/15 bg-charcoal-light/60 hover:border-gold/50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <h2 className="font-english-display tracking-wide text-lg font-semibold text-ivory">3. Add a Kalvettu (AI)</h2>
+              </div>
+              <p className="mt-1 text-xs text-ivory/70">
+                AI-assisted draft extraction from photos for epigraphist moderation.
+              </p>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="container-page max-w-4xl py-10">
-        <div className="mb-8 flex flex-wrap gap-2">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              className={chipCls(tab === t.id)}
-              onClick={() => setTab(t.id)}
-              disabled={busy}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
+      <div className="container-page max-w-5xl py-10">
         {error && (
-          <div className="mb-6 rounded-sm border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+          <div className="mb-6 rounded-md border border-red-300 bg-red-50 p-4 text-sm text-red-800 shadow-sm">
+            <span className="font-semibold">Notice:</span> {error}
           </div>
         )}
 
+        {/* 1. ASK THE ARCHIVE */}
         {tab === 'chat' && (
-          <div className="card-surface p-6">
-            <SectionHeading eyebrow="Grounded Q&A" title="Ask anything about the archive" />
-            {messages.length === 0 ? (
-              <p className="mt-2 text-sm text-ink/70">
-                Try e.g. "What did Rajaraja I give to the Thanjavur temple?" or "Which inscriptions
-                mention the Chera campaign?"
-              </p>
-            ) : (
-              <div className="mt-4 max-h-96 space-y-3 overflow-y-auto pr-2">
-                {messages.map((m, i) => (
-                  <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] rounded-sm px-4 py-2.5 text-sm leading-relaxed ${m.role === 'user' ? 'bg-gold-dark text-ivory' : 'bg-charcoal/10 text-ink'}`}>
-                      <p className="whitespace-pre-wrap">{m.content}</p>
-                    </div>
-                  </div>
-                ))}
-                {busy && <p className="text-sm text-ink/60">Thinking…</p>}
+          <div className="card-surface p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gold/20 pb-4">
+              <div>
+                <span className="label-eyebrow">RAG ARCHIVE SEARCH</span>
+                <h2 className="font-english-display tracking-wide text-2xl font-semibold text-charcoal">Ask anything about the verified records</h2>
               </div>
-            )}
+              <div className="flex items-center gap-2 text-xs text-stone">
+                <span>Multi-provider fallback:</span>
+                <span className="rounded-full bg-gold/10 px-2.5 py-0.5 font-medium text-gold-dark">
+                  Groq &middot; Cerebras &middot; Gemma &middot; Gemini
+                </span>
+              </div>
+            </div>
 
+            {/* Suggested Question Pills */}
+            <div className="mt-5">
+              <p className="text-xs font-semibold text-stone uppercase tracking-wide">Suggested questions from verified volumes:</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {suggestedQuestions.map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => sendChat(q)}
+                    disabled={busy}
+                    className="rounded-full border border-charcoal/15 bg-white px-3.5 py-1.5 text-xs text-charcoal transition hover:border-gold hover:bg-gold/5 hover:text-gold-dark"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Conversation Area */}
+            <div className="mt-6 space-y-4">
+              {messages.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-charcoal/15 bg-ivory-deep/40 p-8 text-center">
+                  <p className="font-english-display tracking-wide text-lg font-medium text-charcoal">No questions asked yet</p>
+                  <p className="mt-1 text-sm text-stone">
+                    Type a question below or pick a suggested topic above to query the database.
+                  </p>
+                </div>
+              ) : (
+                <div className="max-h-[500px] space-y-4 overflow-y-auto pr-2">
+                  {messages.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className={`max-w-[85%] rounded-lg p-4 text-sm leading-relaxed shadow-sm ${
+                          m.role === 'user'
+                            ? 'bg-charcoal text-ivory'
+                            : 'border border-gold/30 bg-white text-charcoal'
+                        }`}
+                      >
+                        {m.role === 'assistant' && (
+                          <div className="mb-2 flex items-center justify-between border-b border-gold/15 pb-1 text-xs text-gold-dark">
+                            <span className="font-semibold uppercase tracking-wider">Kalvettu Intelligence</span>
+                            {chatResponse?.providerUsed && (
+                              <span className="text-[11px] text-stone">Generated via: {chatResponse.providerUsed}</span>
+                            )}
+                          </div>
+                        )}
+                        {m.role === 'assistant' ? (
+                          <div className="prose prose-stone prose-sm max-w-none prose-headings:font-english-display prose-headings:text-charcoal prose-a:text-gold-dark hover:prose-a:text-gold prose-table:text-sm prose-td:p-2 prose-th:p-2 prose-th:bg-ivory-deep prose-table:border-collapse prose-tr:border-b prose-tr:border-charcoal/10">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {m.content}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <p className="whitespace-pre-wrap">{m.content}</p>
+                        )}
+
+                        {/* Citations & Linked Sources */}
+                        {m.role === 'assistant' && chatResponse?.sources && chatResponse.sources.length > 0 && (
+                          <div className="mt-4 border-t border-gold/20 pt-3">
+                            <p className="text-xs font-semibold text-charcoal uppercase tracking-wider">
+                              Authoritative Sources Cited:
+                            </p>
+                            <ul className="mt-2 space-y-1.5 text-xs text-stone">
+                              {chatResponse.sources.map((s, idx) => (
+                                <li key={idx} className="flex items-start gap-1.5">
+                                  <span className="text-gold-dark font-bold">&bull;</span>
+                                  <span>
+                                    <strong className="text-charcoal">{s.institution}</strong> - {s.reference}
+                                    {s.url && (
+                                      <a
+                                        href={s.url}
+                                        target="_blank"
+                                        rel="noreferrer noopener"
+                                        className="ml-1.5 text-gold-dark underline hover:text-gold"
+                                      >
+                                        [View Source &rarr;]
+                                      </a>
+                                    )}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Related Temples / Inscriptions */}
+                        {m.role === 'assistant' && (
+                          (chatResponse?.relatedTemples?.length || chatResponse?.relatedInscriptions?.length) ? (
+                            <div className="mt-3 flex flex-wrap gap-1.5 pt-2 text-xs">
+                              {chatResponse.relatedTemples?.map((t) => (
+                                <Link
+                                  key={t}
+                                  to={`/temples?q=${encodeURIComponent(t)}`}
+                                  className="rounded-full bg-gold/10 px-2.5 py-0.5 text-gold-dark hover:bg-gold/20 transition"
+                                >
+                                  {t}
+                                </Link>
+                              ))}
+                              {chatResponse.relatedInscriptions?.map((ins) => (
+                                <Link
+                                  key={ins}
+                                  to={`/inscriptions?q=${encodeURIComponent(ins)}`}
+                                  className="rounded-full bg-charcoal/10 px-2.5 py-0.5 text-charcoal hover:bg-charcoal/20 transition"
+                                >
+                                  {ins}
+                                </Link>
+                              ))}
+                            </div>
+                          ) : null
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {busy && (
+                    <div className="flex justify-start">
+                      <div className="rounded-lg border border-gold/30 bg-white p-4 text-sm text-stone shadow-sm">
+                        <span className="inline-block animate-pulse">Searching verified archive records & consulting AI fallback chain&hellip;</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Input Bar */}
             <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
               <textarea
                 className={inputCls}
                 rows={2}
-                placeholder="Ask about temples, inscriptions, rulers, dynasties…"
+                placeholder="Ask about temple endowments, kings, campaigns, silver/gold vessels, or administration…"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat() } }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    sendChat()
+                  }
+                }}
               />
-              <select className={inputCls} value={language} onChange={(e) => setLanguage(e.target.value)}>
-                {languages.map((l) => <option key={l}>{l}</option>)}
+              <select
+                className="rounded-md border border-gold/30 bg-ivory-card px-3 py-2 text-sm text-charcoal focus:border-gold focus:outline-none"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+              >
+                {languages.map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
               </select>
-              <button className={btnCls} onClick={sendChat} disabled={busy || !chatInput.trim()}>
-                Ask
+              <button
+                className={btnGoldCls}
+                onClick={() => sendChat()}
+                disabled={busy || !chatInput.trim()}
+              >
+                {busy ? 'Searching…' : 'Ask Archive'}
               </button>
             </div>
           </div>
         )}
 
+        {/* 2. TRANSLATE A KALVETTU */}
         {tab === 'translate' && (
-          <div className="card-surface p-6">
-            <SectionHeading eyebrow="Translate & explain" title="Kalvettu in any language" />
-            <textarea
-              className={inputCls}
-              rows={5}
-              placeholder="Paste the kalvettu text (Tamil / Grantha, or a transcription) here…"
-              value={transText}
-              onChange={(e) => setTransText(e.target.value)}
-            />
-            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto]">
-              <select className={inputCls} value={transLang} onChange={(e) => setTransLang(e.target.value)}>
-                {languages.map((l) => <option key={l}>{l}</option>)}
-              </select>
-              <button className={btnCls} onClick={doTranslate} disabled={busy || !transText.trim()}>
-                Translate & explain
-              </button>
+          <div className="card-surface p-6 sm:p-8">
+            <div className="border-b border-gold/20 pb-4">
+              <span className="label-eyebrow">EPIGRAPHIC TRANSLATOR</span>
+              <h2 className="font-english-display tracking-wide text-2xl font-semibold text-charcoal">Translate & explain an inscription</h2>
+              <p className="mt-1 text-sm text-stone">
+                Enter Tamil, Grantha, or romanised inscription text, or upload an inscription photograph for AI OCR analysis.
+              </p>
             </div>
 
-            {translation && (
-              <div className="mt-6 space-y-4 text-sm leading-relaxed text-ink/85">
-                <div>
-                  <h3 className="font-display text-lg font-semibold text-charcoal">Translation ({translation.targetLanguage})</h3>
-                  <p className="mt-1 whitespace-pre-wrap">{translation.translation}</p>
-                </div>
-                <div>
-                  <h3 className="font-display text-lg font-semibold text-charcoal">Plain-language explanation</h3>
-                  <p className="mt-1 whitespace-pre-wrap">{translation.explanation}</p>
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase text-charcoal">
+                  Inscription Text (Tamil / Grantha / Transliteration)
+                </label>
+                <textarea
+                  className={inputCls + ' mt-1'}
+                  rows={4}
+                  placeholder="e.g. Svasti Sri Udaiyar Sri Vijaya Rajendra devar Kalyanapuram erindu kodu vanda dvarapalar..."
+                  value={transText}
+                  onChange={(e) => setTransText(e.target.value)}
+                />
+              </div>
+
+              {/* Optional Photo Upload */}
+              <div>
+                <label className="block text-xs font-semibold uppercase text-charcoal">
+                  Or upload photograph of inscription (Optional OCR)
+                </label>
+                <div className="mt-1 flex flex-col sm:flex-row gap-3">
+                  <label className="flex-1 cursor-pointer rounded-md border border-dashed border-gold/40 bg-white p-4 text-center text-sm text-charcoal hover:border-gold">
+                    {transImage ? `Attached: ${transImage.name}` : 'Click to select an inscription photograph'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) {
+                          setTransImage(f)
+                          setTransImgPreview(URL.createObjectURL(f))
+                        }
+                      }}
+                    />
+                  </label>
+                  {transImgPreview && (
+                    <div className="relative h-20 w-28 overflow-hidden rounded-md border border-gold/30">
+                      <img src={transImgPreview} alt="Preview" className="h-full w-full object-cover" />
+                      <button
+                        onClick={() => { setTransImage(null); setTransImgPreview('') }}
+                        className="absolute right-1 top-1 rounded-full bg-charcoal/70 px-1.5 py-0.5 text-[10px] text-white"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <label className="flex items-center gap-2 text-sm text-charcoal">
+                  <span>Target Language:</span>
+                  <select
+                    className="rounded-md border border-gold/30 bg-ivory-card px-3 py-1.5 text-sm"
+                    value={transLang}
+                    onChange={(e) => setTransLang(e.target.value)}
+                  >
+                    {languages.map((l) => (
+                      <option key={l} value={l}>{l}</option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  className={btnGoldCls + ' ml-auto'}
+                  onClick={doTranslate}
+                  disabled={busy || (!transText.trim() && !transImage)}
+                >
+                  {busy ? 'Translating…' : 'Translate & Explain'}
+                </button>
+              </div>
+
+              {/* Translation Output Card */}
+              {translation && (
+                <div className="mt-8 rounded-lg border border-gold/40 bg-white p-6 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gold/20 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-gold/15 px-3 py-0.5 text-xs font-semibold text-gold-dark">
+                        {translation.detectedLanguage} ({translation.detectedScript})
+                      </span>
+                      {translation.isDraft && (
+                        <span className="rounded-full bg-amber-100 px-3 py-0.5 text-xs font-semibold text-amber-800">
+                          AI-generated draft - requires verification
+                        </span>
+                      )}
+                    </div>
+                    {translation.providerUsed && (
+                      <span className="text-xs text-stone">Engine: {translation.providerUsed}</span>
+                    )}
+                  </div>
+
+                  <div className="mt-4 space-y-4 text-sm leading-relaxed text-charcoal">
+                    <div>
+                      <h4 className="font-semibold text-charcoal text-xs uppercase tracking-wider text-gold-dark">
+                        Translation ({translation.targetLanguage})
+                      </h4>
+                      <p className="mt-1 text-base leading-relaxed text-charcoal/90">{translation.translation}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-charcoal text-xs uppercase tracking-wider text-gold-dark">
+                        Plain-Language Explanation
+                      </h4>
+                      <p className="mt-1 text-sm leading-relaxed text-charcoal/80">{translation.explanation}</p>
+                    </div>
+
+                    {translation.historicalContext && (
+                      <div>
+                        <h4 className="font-semibold text-charcoal text-xs uppercase tracking-wider text-gold-dark">
+                          Historical Context
+                        </h4>
+                        <p className="mt-1 text-sm text-charcoal/80">{translation.historicalContext}</p>
+                      </div>
+                    )}
+
+                    {translation.importantTerms && translation.importantTerms.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-charcoal text-xs uppercase tracking-wider text-gold-dark">
+                          Key Epigraphic Terms
+                        </h4>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {translation.importantTerms.map((term, i) => (
+                            <span key={i} className="rounded-md bg-ivory-deep px-2.5 py-1 text-xs text-charcoal">
+                              {term}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
+        {/* 3. ADD A KALVETTU (AI-ASSISTED INGESTION) */}
         {tab === 'ingest' && (
-          <div className="card-surface p-6">
-            <SectionHeading eyebrow="AI data ingestion" title="Photo → structured record" />
-            <p className="mt-2 text-sm text-ink/70">
-              Upload a photo of an inscription (or paste its text). Gemini reads it and produces a
-              draft record for review.
-            </p>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <label className="block cursor-pointer rounded-sm border border-dashed border-gold/40 bg-white px-4 py-6 text-center text-sm text-charcoal/70 hover:border-gold">
-                {ingImage ? `Selected: ${ingImage.name}` : 'Click to upload an inscription photo'}
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onImagePicked(f) }} />
-              </label>
-              <div className="rounded-sm border border-gold/30 bg-white p-2">
-                {imgPreview ? (
-                  <img src={imgPreview} alt="preview" className="h-36 w-full rounded-sm object-contain" />
-                ) : (
-                  <p className="grid h-36 place-items-center text-xs text-charcoal/50">Image preview</p>
-                )}
+          <div className="card-surface p-6 sm:p-8">
+            <div className="border-b border-gold/20 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="label-eyebrow">CONTRIBUTE TO ARCHIVE</span>
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-900">
+                  DRAFT MODERATION WORKFLOW
+                </span>
               </div>
+              <h2 className="font-english-display tracking-wide text-2xl font-semibold text-charcoal">Add a Kalvettu (AI-Assisted)</h2>
+              <p className="mt-1 text-sm text-stone">
+                Upload a photograph or transcription of an inscription. The AI extracts a candidate structured record
+                which is automatically saved as <strong className="text-charcoal">DRAFT</strong> in Supabase for human expert verification.
+              </p>
             </div>
 
-            <textarea
-              className={inputCls + ' mt-4'}
-              rows={3}
-              placeholder="Optional: paste the transcription text here…"
-              value={ingText}
-              onChange={(e) => setIngText(e.target.value)}
-            />
-            <input
-              className={inputCls + ' mt-3'}
-              placeholder="Optional: known temple / find-spot, e.g. Brihadisvara Temple, Thanjavur"
-              value={ingTemple}
-              onChange={(e) => setIngTemple(e.target.value)}
-            />
-            <button className={btnCls + ' mt-4'} onClick={doIngest} disabled={busy || (!ingImage && !ingText.trim())}>
-              Extract record
-            </button>
-
-            {ingest && (
-              <div className="mt-6 space-y-4 border-t border-gold/20 pt-4 text-sm leading-relaxed text-ink/85">
+            <div className="mt-6 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <h3 className="font-display text-lg font-semibold text-charcoal">{ingest.title || 'Extracted kalvettu'}</h3>
-                  <p className="mt-1 text-xs text-ink/60">{ingest.language} · {ingest.script}</p>
+                  <label className="block text-xs font-semibold uppercase text-charcoal">
+                    Inscription Photograph
+                  </label>
+                  <label className="mt-1 flex h-40 cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-gold/40 bg-white p-4 text-center text-sm text-charcoal hover:border-gold">
+                    {ingImage ? ingImage.name : 'Click to upload inscription photo'}
+                    <span className="mt-1 text-[11px] text-stone">Supports JPEG, PNG, WebP</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) {
+                          setIngImage(f)
+                          setImgPreview(URL.createObjectURL(f))
+                        }
+                      }}
+                    />
+                  </label>
                 </div>
-                {ingest.translation && (
-                  <div><h4 className="font-semibold text-charcoal">Translation</h4><p className="mt-0.5 whitespace-pre-wrap">{ingest.translation}</p></div>
-                )}
-                {ingest.simpleExplanation && (
-                  <div><h4 className="font-semibold text-charcoal">Simple explanation</h4><p className="mt-0.5 whitespace-pre-wrap">{ingest.simpleExplanation}</p></div>
-                )}
-                {ingest.historicalSignificance && (
-                  <div><h4 className="font-semibold text-charcoal">Historical significance</h4><p className="mt-0.5 whitespace-pre-wrap">{ingest.historicalSignificance}</p></div>
-                )}
-                {ingest.ruler && <div><h4 className="font-semibold text-charcoal">Ruler</h4><p className="mt-0.5">{ingest.ruler}</p></div>}
-                {ingest.notes && <div><h4 className="font-semibold text-charcoal">Notes</h4><p className="mt-0.5 whitespace-pre-wrap">{ingest.notes}</p></div>}
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-charcoal">
+                    Image Preview
+                  </label>
+                  <div className="mt-1 flex h-40 items-center justify-center overflow-hidden rounded-md border border-gold/30 bg-white">
+                    {imgPreview ? (
+                      <img src={imgPreview} alt="Preview" className="h-full w-full object-contain" />
+                    ) : (
+                      <p className="text-xs text-stone/50">No photo uploaded</p>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-charcoal">
+                    Associated Temple / Site
+                  </label>
+                  <input
+                    className={inputCls + ' mt-1'}
+                    placeholder="e.g. Brihadisvara Temple, Thanjavur"
+                    value={ingTemple}
+                    onChange={(e) => setIngTemple(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase text-charcoal">
+                    Location in Temple
+                  </label>
+                  <input
+                    className={inputCls + ' mt-1'}
+                    placeholder="e.g. North wall of central shrine, second tier"
+                    value={ingLocation}
+                    onChange={(e) => setIngLocation(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-charcoal">
+                  Transcription Text (Optional if photo is clear)
+                </label>
+                <textarea
+                  className={inputCls + ' mt-1'}
+                  rows={3}
+                  placeholder="Paste known text or notes from ASI / SII volume..."
+                  value={ingText}
+                  onChange={(e) => setIngText(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase text-charcoal">
+                  Archaeological Notes / References
+                </label>
+                <input
+                  className={inputCls + ' mt-1'}
+                  placeholder="e.g. Reference number, discoverer, publication notes..."
+                  value={ingNotes}
+                  onChange={(e) => setIngNotes(e.target.value)}
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  className={btnGoldCls}
+                  onClick={doIngest}
+                  disabled={busy || (!ingImage && !ingText.trim())}
+                >
+                  {busy ? 'Extracting & Saving Draft…' : 'Extract Record (AI)'}
+                </button>
+              </div>
+
+              {/* Extraction Review Card */}
+              {ingest && (
+                <div className="mt-8 rounded-lg border border-amber-300 bg-amber-50/50 p-6 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-amber-200 px-3 py-0.5 text-xs font-bold text-amber-900">
+                        STATUS: {ingest.verificationStatus || 'DRAFT'}
+                      </span>
+                      <span className="text-xs text-amber-800">
+                        {ingest.statusMessage}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-3 text-sm text-charcoal">
+                    <h3 className="font-english-display tracking-wide text-xl font-semibold text-charcoal">{ingest.title}</h3>
+                    <p className="text-xs text-stone">
+                      Language: <strong>{ingest.language}</strong> &middot; Script: <strong>{ingest.script}</strong>
+                    </p>
+                    {ingest.ruler && (
+                      <p className="text-xs text-stone">Associated Ruler: <strong>{ingest.ruler}</strong></p>
+                    )}
+                    {ingest.translation && (
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase text-gold-dark">Translation</h4>
+                        <p className="mt-0.5 text-charcoal/90">{ingest.translation}</p>
+                      </div>
+                    )}
+                    {ingest.simpleExplanation && (
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase text-gold-dark">Explanation</h4>
+                        <p className="mt-0.5 text-charcoal/80">{ingest.simpleExplanation}</p>
+                      </div>
+                    )}
+                    {ingest.historicalSignificance && (
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase text-gold-dark">Significance</h4>
+                        <p className="mt-0.5 text-charcoal/80">{ingest.historicalSignificance}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

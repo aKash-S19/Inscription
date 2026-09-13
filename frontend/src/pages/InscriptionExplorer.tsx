@@ -50,7 +50,7 @@ export default function InscriptionExplorer() {
       <div className="bg-charcoal py-12 text-ivory">
         <div className="container-page">
           <p className="label-eyebrow text-gold-light">Inscription Explorer</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold sm:text-5xl">Reading the kalvettu</h1>
+          <h1 className="mt-2 font-english-display tracking-wide text-4xl font-semibold sm:text-5xl">Reading the kalvettu</h1>
           <p className="mt-3 max-w-2xl text-ivory/70">
             Search inscriptions and filter by temple, dynasty, ruler, or district. Every record keeps its source reference.
           </p>
@@ -80,12 +80,15 @@ export default function InscriptionExplorer() {
         {loading ? (
           <Spinner />
         ) : items.length === 0 ? (
-          <p className="py-16 text-center text-ink/60">No inscriptions match your filters.</p>
+          <div className="py-16 text-center">
+            <p className="font-english-display tracking-wide text-xl font-medium text-charcoal">No verified inscription record found in the Kalvettu archive.</p>
+            <p className="mt-2 text-sm text-stone">Try searching by inscription title (e.g. &ldquo;silver vessels&rdquo;, &ldquo;jewelled ornaments&rdquo;), ruler, or location.</p>
+          </div>
         ) : (
           <>
             <p className="mb-4 text-sm text-stone">{items.length} inscription{items.length !== 1 ? 's' : ''} found</p>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((i) => <InscriptionCardItem key={i.slug} inscription={i} />)}
+              {items.map((i, idx) => <InscriptionCardItem key={i.slug} inscription={i} index={idx} />)}
             </div>
           </>
         )}

@@ -40,17 +40,17 @@ export default function InteractiveMap() {
       <div className="bg-charcoal py-10 text-ivory">
         <div className="container-page">
           <p className="label-eyebrow text-gold-light">Interactive Temple Map</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold sm:text-5xl">Where the inscriptions live</h1>
+          <h1 className="mt-2 font-english-display tracking-wide text-4xl font-semibold sm:text-5xl">Where the inscriptions live</h1>
           <p className="mt-3 max-w-2xl text-ivory/70">
-            Pick a temple to see its documented inscription locations. Locations are shown only where a source verifies them —
+            Pick a temple to see its documented inscription locations. Locations are shown only where a source verifies them -
             we never invent where an inscription sits.
           </p>
         </div>
       </div>
 
       <div className="container-page grid gap-6 py-10 lg:grid-cols-[1fr_360px]">
-        <div className="card-surface overflow-hidden">
-          <MapContainer center={center} zoom={selected ? 16 : 7} scrollWheelZoom className="h-[60vh] min-h-[420px] w-full">
+        <div className="card-surface overflow-hidden relative z-0">
+          <MapContainer center={center} zoom={selected ? 16 : 7} scrollWheelZoom className="h-[60vh] min-h-[420px] w-full relative z-0">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -84,14 +84,14 @@ export default function InteractiveMap() {
               onChange={(e) => { setSelected(e.target.value); setParams(e.target.value ? { temple: e.target.value } : {}) }}
               className="mt-1 w-full rounded-sm border border-charcoal/15 px-3 py-2.5 text-sm focus:border-gold focus:outline-none"
             >
-              <option value="">— Choose —</option>
+              <option value="">- Choose -</option>
               {temples.map((t) => <option key={t.slug} value={t.slug}>{t.nameEn}</option>)}
             </select>
           </label>
 
           {selected && (
             <div className="card-surface p-4">
-              <h3 className="font-display text-lg font-semibold text-charcoal">{temple?.nameEn}</h3>
+              <h3 className="font-english-display tracking-wide text-lg font-semibold text-charcoal">{temple?.nameEn}</h3>
               <p className="text-xs text-stone">{locations.length} documented inscription location(s)</p>
 
               {locations.length > 0 ? (
@@ -142,7 +142,7 @@ function InTemplePlan({ locations }: { locations: InscriptionLocationDto[] }) {
       <p className="label-eyebrow mb-2">In-temple schematic</p>
       <div className="relative h-56 w-full overflow-hidden rounded-sm border border-charcoal/15 bg-ivory-deep">
         <div className="absolute inset-x-6 top-1/2 h-24 -translate-y-1/2 rounded-sm border border-charcoal/20 bg-charcoal/5" />
-        <div className="absolute inset-0 grid place-items-center text-charcoal/15 font-display text-sm">temple plan (schematic)</div>
+        <div className="absolute inset-0 grid place-items-center text-charcoal/15 font-english-display tracking-wide text-sm">temple plan (schematic)</div>
         {locations.map((l) => (
           <Link
             key={l.id}

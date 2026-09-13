@@ -24,13 +24,13 @@ export default function Navbar() {
   }, [])
 
   return (
-    <header className={`sticky top-0 z-50 border-b transition-colors ${scrolled ? 'border-gold/30 bg-charcoal/95 backdrop-blur' : 'border-transparent bg-charcoal'}`}>
+    <header className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? 'border-b border-gold/20 bg-[#0a0a0a]/85 backdrop-blur-md shadow-md' : 'border-b border-transparent bg-[#0a0a0a]'}`}>
       <nav className="container-page flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          <span className="grid h-9 w-9 place-items-center rounded-sm border border-gold/50 text-gold-light font-display text-lg">க</span>
+        <Link to="/" className="flex items-center gap-3 -ml-2" onClick={() => setOpen(false)}>
+          <img src="/logo-Photoroom.png" alt="Silaimozhi Logo" className="h-14 w-14 object-contain" />
           <span className="leading-tight">
-            <span className="block font-display text-xl font-semibold tracking-wide text-ivory">Kalvettu</span>
-            <span className="block text-[10px] uppercase tracking-[0.28em] text-gold-light/80">Tamil Temple Inscriptions</span>
+            <span className="block font-english-display tracking-wide text-xl font-semibold tracking-wide text-ivory">Silaimozhi</span>
+            <span className="hidden sm:block text-[10px] uppercase tracking-[0.28em] text-gold-light/80">Tamil Temple Inscriptions</span>
           </span>
         </Link>
 

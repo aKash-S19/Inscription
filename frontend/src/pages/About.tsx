@@ -44,7 +44,7 @@ export default function About() {
       <div className="bg-charcoal py-12 text-ivory">
         <div className="container-page">
           <p className="label-eyebrow text-gold-light">About & sources</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold sm:text-5xl">Why this archive exists</h1>
+          <h1 className="mt-2 font-english-display tracking-wide text-4xl font-semibold sm:text-5xl">Why this archive exists</h1>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ export default function About() {
           <SectionHeading eyebrow="Purpose" title="Bringing the stone voice to the present" />
           <p className="text-lg leading-relaxed text-ink/85">
             For a thousand years, our ancestors recorded their history, administration, devotion, and achievement
-            on the walls of Tamil temples. <span lang="ta">கல்வெட்டு</span> (kalvettu) — "the engraved stone" — is
+            on the walls of Tamil temples. <span className="font-tamil-regular font-semibold tracking-wide" lang="ta">கல்வெட்டு</span> (kalvettu) - "the engraved stone" - is
             that record. This project connects the physical temple, the exact spot of an inscription, the original
             image, its transcription and translation, and the authoritative source, so that this knowledge reaches
             the present generation intact.
@@ -61,11 +61,11 @@ export default function About() {
         </section>
 
         <section className="card-surface border-gold/30 p-6">
-          <h2 className="font-display text-2xl font-semibold text-charcoal">Our data policy</h2>
+          <h2 className="font-english-display tracking-wide text-2xl font-semibold text-charcoal">Our data policy</h2>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-ink/85">
             <li><strong className="text-gold-dark">No fabrication.</strong> We do not invent historical data, translations, or image URLs.</li>
             <li><strong className="text-gold-dark">Every fact is sourced.</strong> Each inscription retains its publication reference (SII volume/number, ARE number, or Epigraphia Indica).</li>
-            <li><strong className="text-gold-dark">Unverified = unavailable.</strong> Where a fact, translation, image, or physical location cannot be verified from a primary/authoritative source, it is marked as not recorded — never guessed.</li>
+            <li><strong className="text-gold-dark">Unverified = unavailable.</strong> Where a fact, translation, image, or physical location cannot be verified from a primary/authoritative source, it is marked as not recorded - never guessed.</li>
             <li><strong className="text-gold-dark">Real photographs only.</strong> Images are from Wikimedia Commons with author + licence attribution; no AI-generated imagery.</li>
             <li><strong className="text-gold-dark">Small and accurate.</strong> A modest, verified dataset is preferred over a large fabricated one. More temples and inscriptions will be added as they are verified.</li>
           </ul>
@@ -76,7 +76,7 @@ export default function About() {
           <div className="grid gap-4 sm:grid-cols-2">
             {sources.map((s) => (
               <a key={s.name} href={s.url} target="_blank" rel="noreferrer noopener" className="card-surface block p-5 transition hover:border-gold">
-                <h3 className="font-display text-lg font-semibold text-charcoal">{s.name}</h3>
+                <h3 className="font-english-display tracking-wide text-lg font-semibold text-charcoal">{s.name}</h3>
                 <p className="mt-1 text-sm text-ink/75">{s.note}</p>
                 <span className="mt-2 inline-block text-xs font-medium text-gold-dark">Visit ↗</span>
               </a>
@@ -84,17 +84,7 @@ export default function About() {
           </div>
         </section>
 
-        <section>
-          <SectionHeading eyebrow="The journey" title="How to read a record" />
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            {['Temple', 'Inscription location', 'Original image', 'Transcription', 'Translation', 'Historical meaning', 'Source'].map((step, i) => (
-              <span key={step} className="flex items-center gap-2">
-                <span className="rounded-sm bg-charcoal px-3 py-1.5 text-ivory-card">{i + 1}. {step}</span>
-                {i < 6 && <span className="text-gold">→</span>}
-              </span>
-            ))}
-          </div>
-        </section>
+
       </div>
     </div>
   )

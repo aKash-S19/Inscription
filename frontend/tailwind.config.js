@@ -10,6 +10,7 @@ export default {
           light: '#3a2c1f',
           dark: '#1d160f',
         },
+        obsidian: '#0a0a0a',
         // Warm ivory / cream backgrounds
         ivory: {
           DEFAULT: '#f7f1e3',
@@ -47,5 +48,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }

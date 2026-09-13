@@ -1,3 +1,25 @@
+export interface SourceCitation {
+  institution: string
+  publication?: string
+  reference: string
+  url?: string
+}
+
+export interface SourceDto {
+  id: number
+  slug?: string
+  institution: string
+  publication?: string
+  volume?: string
+  year?: string
+  page?: string
+  reference: string
+  url?: string
+  sourceType?: string
+  sourcePriority?: number
+  notes?: string
+}
+
 export interface TempleCard {
   id: number
   slug: string
@@ -22,7 +44,10 @@ export interface TempleCard {
   managedBy?: string
   alternateNames?: string
   sourceNote?: string
+  wikipediaUrl?: string
   heroImageUrl?: string
+  imageUrl?: string
+  verificationStatus?: string
 }
 
 export interface InscriptionCard {
@@ -40,8 +65,10 @@ export interface InscriptionCard {
   language?: string
   script?: string
   physicalLocation?: string
+  imageUrl?: string
   thumbImageUrl?: string
   verified?: boolean
+  verificationStatus?: string
 }
 
 export interface ImageDto {
@@ -58,6 +85,8 @@ export interface ImageDto {
   licenseUrl?: string
   commonsUrl?: string
   caption?: string
+  storagePath?: string
+  verificationStatus?: string
 }
 
 export interface InscriptionLocationDto {
@@ -112,9 +141,11 @@ export interface DistrictDto {
 export interface TimelineEvent {
   year: string
   title: string
-  description: string
-  type: string
-  relatedSlug: string
+  description?: string
+  entityType?: string
+  entitySlug?: string
+  type?: string
+  relatedSlug?: string
   sourceNote?: string
 }
 
@@ -125,6 +156,7 @@ export interface TempleDetail {
   locations: InscriptionLocationDto[]
   dynasty?: DynastyDto
   district?: DistrictDto
+  source?: SourceDto
 }
 
 export interface InscriptionDetail {
@@ -154,13 +186,19 @@ export interface InscriptionDetail {
   sourceCitation: string
   sourceUrl?: string
   verified?: boolean
+  verificationStatus?: string
   images: ImageDto[]
   temple?: TempleCard
+  source?: SourceDto
 }
 
 export interface SearchResult {
   temples: TempleCard[]
   inscriptions: InscriptionCard[]
+  dynasties?: DynastyDto[]
+  rulers?: RulerDto[]
+  districts?: DistrictDto[]
+  totalMatches?: number
 }
 
 export interface ChatMessage {
@@ -171,17 +209,31 @@ export interface ChatMessage {
 export interface ChatResponse {
   answer: string
   language: string
+  sources?: SourceCitation[]
+  relatedTemples?: string[]
+  relatedInscriptions?: string[]
+  providerUsed?: string
 }
 
 export interface TranslateRequest {
   text: string
   targetLanguage?: string
+  imageBase64?: string
+  mimeType?: string
 }
 
 export interface TranslateResponse {
+  detectedLanguage?: string
+  detectedScript?: string
+  originalText?: string
   translation: string
   explanation: string
   targetLanguage: string
+  importantTerms?: string[]
+  historicalContext?: string
+  isDraft?: boolean
+  verificationStatus?: string
+  providerUsed?: string
 }
 
 export interface IngestRequest {
@@ -189,6 +241,8 @@ export interface IngestRequest {
   mimeType?: string
   text?: string
   templeName?: string
+  locationInTemple?: string
+  notes?: string
 }
 
 export interface IngestResponse {
@@ -199,5 +253,9 @@ export interface IngestResponse {
   simpleExplanation: string
   historicalSignificance: string
   ruler: string
+  dynasty?: string
   notes: string
+  verificationStatus?: string
+  statusMessage?: string
+  providerUsed?: string
 }

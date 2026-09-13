@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../services/api'
 import type { TimelineEvent } from '../types'
 import SectionHeading from '../components/SectionHeading'
 import Spinner from '../components/Spinner'
+import FadeIn from '../components/FadeIn'
 
 export default function Timeline() {
   const [events, setEvents] = useState<TimelineEvent[]>([])
@@ -24,7 +25,7 @@ export default function Timeline() {
       <div className="bg-charcoal py-10 text-ivory">
         <div className="container-page">
           <p className="label-eyebrow text-gold-light">Timeline</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold sm:text-5xl">Through the centuries</h1>
+          <h1 className="mt-2 font-english-display tracking-wide text-4xl font-semibold sm:text-5xl">Through the centuries</h1>
           <p className="mt-3 max-w-2xl text-ivory/70">
             Temples and rulers in chronological order, built from verified consecration and accession years.
           </p>
@@ -50,27 +51,50 @@ export default function Timeline() {
         {loading ? <Spinner /> : (
           <ol className="relative ml-3 border-l-2 border-gold/40">
             {shown.map((e, i) => (
-              <li key={i} className="mb-8 ml-6">
-                <span className="absolute -left-[9px] mt-1.5 h-4 w-4 rounded-full border-2 border-gold bg-ivory" />
-                <div className="card-surface p-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-display text-2xl font-semibold text-gold-dark">{e.year}</span>
-                    <span className={`chip ${e.type === 'TEMPLE' ? 'bg-charcoal/80 text-gold-light' : ''}`}>{e.type}</span>
-                  </div>
-                  <h3 className="mt-1 font-display text-xl font-semibold text-charcoal">{e.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink/80">{e.description}</p>
-                  {e.relatedSlug && e.type === 'TEMPLE' && (
-                    <Link to={`/temples/${e.relatedSlug}`} className="mt-3 inline-block text-sm font-medium text-gold-dark hover:underline">Temple page →</Link>
-                  )}
-                  {e.relatedSlug && e.type === 'RULER' && (
-                    <Link to={`/inscriptions?ruler=${e.relatedSlug}`} className="mt-3 inline-block text-sm font-medium text-gold-dark hover:underline">Inscriptions →</Link>
-                  )}
-                </div>
-              </li>
+              <TimelineItem key={i} e={e} />
             ))}
           </ol>
         )}
       </div>
     </div>
+  )
+}
+
+function TimelineItem({ e }: { e: TimelineEvent }) {
+  const [isVisible, setIsVisible] = useState(false)
+  const ref = useRef<HTMLLIElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting)
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    )
+    
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <li ref={ref} className="mb-8 ml-6">
+      <span className={`absolute -left-[9px] mt-1.5 h-4 w-4 rounded-full border-2 border-gold transition-colors duration-[1500ms] ${isVisible ? 'bg-gold-dark shadow-[0_0_10px_rgba(176,141,54,0.5)]' : 'bg-ivory'}`} />
+      <FadeIn direction="up">
+        <div className="card-surface p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-english-display tracking-wide text-2xl font-semibold text-gold-dark">{e.year}</span>
+            <span className={`chip ${e.type === 'TEMPLE' ? 'bg-charcoal/80 text-gold-light' : ''}`}>{e.type}</span>
+          </div>
+          <h3 className="mt-1 font-english-display tracking-wide text-xl font-semibold text-charcoal">{e.title}</h3>
+          <p className="mt-2 text-sm leading-relaxed text-ink/80">{e.description}</p>
+          {e.relatedSlug && e.type === 'TEMPLE' && (
+            <Link to={`/temples/${e.relatedSlug}`} className="mt-3 inline-block text-sm font-medium text-gold-dark hover:underline">Temple page →</Link>
+          )}
+          {e.relatedSlug && e.type === 'RULER' && (
+            <Link to={`/inscriptions?ruler=${e.relatedSlug}`} className="mt-3 inline-block text-sm font-medium text-gold-dark hover:underline">Inscriptions →</Link>
+          )}
+        </div>
+      </FadeIn>
+    </li>
   )
 }

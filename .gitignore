@@ -1,70 +1,75 @@
-# ---- Java / Maven ----
-backend/target/
-*.class
-*.jar
-*.war
-*.ear
-hs_err_pid*
-replay_pid*
+# ==========================================================
+# Silaimozhi - Production .gitignore
+# ==========================================================
 
-# ---- Spring Tool Suite / Eclipse ----
-backend/.project
-backend/.classpath
-backend/.settings/
-.metadata/
-.classpath
-.project
-.settings/
-*.prefs
+# --- Secrets, Credentials & Local Environments ---
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+*.cert
+*.crt
+credentials.json
 
-# ---- Node / npm ----
+# --- Python Backend & Virtual Environments ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+python_backend/venv/
+python_backend/env/
+python_backend/.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+instance/
+.webassets-cache
+
+# --- Databases & SQLite Binaries ---
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+kalvettu.db
+
+# --- Frontend (Node / React / Vite) ---
+node_modules/
 frontend/node_modules/
+dist/
 frontend/dist/
 *.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.timestamp-*.mjs
+frontend/vite.config.ts.timestamp-*
 
-# ---- Local env / secrets ----
-.env
-.env.*
-!.env.example
-*.local
-
-# ---- OS ----
+# --- OS & IDE Configurations ---
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# ---- IDE ----
 .idea/
 *.iml
 .vscode/
 *.code-workspace
 
-# ---- Logs ----
+# --- Logs ---
 logs/
 *.log
 
-# ---- Research / data-curation artifacts (not needed to run the app) ----
-# Root-level research pipeline (step*.py, commons_*.py, etc.) and downloaded
-# source data. The running app only needs data inside
-# backend/src/main/resources/data/ and the built frontend in
-# backend/src/main/resources/static/. These root files were used once to
-# generate that dataset and are not part of the runtime artifact.
-/*.py
-/*.txt
-/*.json
-/*.xml
-/*.pdf
-/*.html
-Research/
-_research/
-apicache/
+# --- Scratch & Internal AI Cache ---
+scratch/
+crap/
 .workbuddy-ai/
-maven.zip
-
-# ---- Archives / large local artifacts ----
+.gemini/
 *.zip
+*.tar.gz
 *.gz

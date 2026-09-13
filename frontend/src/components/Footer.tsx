@@ -5,12 +5,12 @@ export default function Footer() {
     <footer className="border-t border-gold/30 bg-charcoal text-ivory/80">
       <div className="container-page grid gap-8 py-12 md:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-sm border border-gold/50 text-gold-light font-display">க</span>
-            <span className="font-display text-lg text-ivory">Kalvettu</span>
+          <div className="flex items-center gap-2 -ml-1">
+            <img src="/logo-Photoroom.png" alt="Silaimozhi Logo" className="h-10 w-10 object-contain" />
+            <span className="font-english-display tracking-wide text-lg text-ivory">Silaimozhi</span>
           </div>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-ivory/60">
-            A digital archive of Tamil temple inscriptions — connecting the temple,
+            A digital archive of Tamil temple inscriptions - connecting the temple,
             its inscription locations, the original records, and their authoritative sources.
           </p>
         </div>
@@ -43,7 +43,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-gold/15 py-4 text-center text-xs text-ivory/40">
-        © {new Date().getFullYear()} Kalvettu Heritage Project · Photographs via Wikimedia Commons under their respective licences.
+        © {new Date().getFullYear()} Silaimozhi Heritage Project · Photographs via Wikimedia Commons under their respective licences.
       </div>
     </footer>
   )

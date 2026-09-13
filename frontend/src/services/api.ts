@@ -2,6 +2,7 @@ import type {
   TempleCard, TempleDetail, InscriptionCard, InscriptionDetail,
   DynastyDto, RulerDto, DistrictDto, InscriptionLocationDto, TimelineEvent, SearchResult,
   ChatMessage, ChatResponse, TranslateRequest, TranslateResponse, IngestRequest, IngestResponse,
+  SourceDto
 } from '../types'
 
 const BASE = '/api'
@@ -52,16 +53,35 @@ export const api = {
 
   timeline: () => get<TimelineEvent[]>('/timeline'),
 
+  sources: () => get<SourceDto[]>('/sources'),
+  source: (id: number) => get<SourceDto>(`/sources/${id}`),
+
   search: (q: string) => get<SearchResult>(`/search?q=${encodeURIComponent(q)}`),
 
   aiChat: (messages: ChatMessage[], language?: string) =>
-    post<ChatResponse>('/ai/chat', { messages, language }),
+    post<ChatResponse>('/ai/ask', { messages, language }),
 
-  aiTranslate: (text: string, targetLanguage?: string) =>
-    post<TranslateResponse>('/ai/translate', { text, targetLanguage }),
+  aiTranslate: (req: TranslateRequest | string, targetLanguage?: string) => {
+    if (typeof req === 'string') {
+      return post<TranslateResponse>('/ai/translate', { text: req, targetLanguage })
+    }
+    return post<TranslateResponse>('/ai/translate', req)
+  },
 
   aiIngest: (req: IngestRequest) =>
-    post<IngestResponse>('/ai/ingest', req),
+    post<IngestResponse>('/ai/extract', req),
+
+  enrichTemple: (slug: string) =>
+    post<TempleDetail>(`/temples/${slug}/enrich`, {}),
+
+  fetchTempleFromWiki: (queryOrUrl: string) =>
+    post<TempleDetail>('/temples/ai-fetch-wiki', { query_or_url: queryOrUrl }),
 }
 
-export type { TempleCard, TempleDetail, InscriptionCard, InscriptionDetail, DynastyDto, RulerDto, DistrictDto, InscriptionLocationDto, TimelineEvent, SearchResult, ChatMessage, ChatResponse, TranslateResponse, IngestResponse }
+export type {
+  TempleCard, TempleDetail, InscriptionCard, InscriptionDetail,
+  DynastyDto, RulerDto, DistrictDto, InscriptionLocationDto,
+  TimelineEvent, SearchResult, ChatMessage, ChatResponse,
+  TranslateRequest, TranslateResponse, IngestRequest, IngestResponse,
+  SourceDto
+}
